@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gloubly</title>
+    <style>
+        body{
+            background-color: #29272d;
+        }
+
+        .center {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h2{
+            color:white;
+            text-align: center;
+        }
+
+        h4{
+            color:white;
+            text-align: center;
+        }
+
+        td{
+            color: white;
+            vertical-align: top;
+        }
+
+        input {
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            height: 17px;
+            width: 17px;
+        }
+
+        .button-container {
+            margin-top: 10px;
+            align-items: center;
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            cursor: pointer;
+            border-width: 0;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+    </style>
+    
+</head>
+<body>
+    <h2>Choose parameters for the prediction</h2>
+    <table class="center">
+        <tr>
+            <td>Passenger class</td>
+            <td>
+                <input type="text" id="pclass">
+            </td>
+        </tr>
+        <tr>
+            <td>Sex</td>
+            <td>
+                <label>
+                    <input type="radio" name="sex" value="1" checked> Man
+                </label><br>
+                <label>
+                    <input type="radio" name="sex" value="0" checked> Woman
+                </label><br>
+            </td>
+        </tr>
+        <tr>
+            <td>Age</td>
+            <td>
+                <input type="text" id="age">
+            </td>
+        </tr>
+        <tr>
+            <td>Siblings/Spouses abroad</td>
+            <td>
+                <input type="text" id="sibsp">
+            </td>
+        </tr>
+        <tr>
+            <td>Parents/Children abroad</td>
+            <td>
+                <input type="text" id="parch">
+            </td>
+        </tr>
+        <tr>
+            <td>Fare paid of the ticket</td>
+            <td>
+                <input type="text" id="fare">
+            </td>
+        </tr>
+        <tr>
+            <td>Alone</td>
+            <td>
+                <input type="checkbox" id="alone">
+            </td>
+        </tr>
+        <tr>
+            <td>Embarkation Port</td>
+            <td>
+                <label>
+                    <input type="radio" name="port" value="C" checked> Cherbourg
+                </label><br>
+                <label>
+                    <input type="radio" name="port" value="Q"> Queenstown
+                </label><br>
+                <label>
+                    <input type="radio" name="port" value="S"> Southampton
+                </label>
+            </td>
+        </tr>
+    </table>
+    <div class="button-container">
+        <button onclick="send()" class="buttonContainer">Show prediction</button>
+        <span style="display:none"></span>
+    </div>
+    <h4 id="prediction"></h4>
+    
+    <!--<script src="/static/script.js"></script>
+    /static/script.js caused troubles with Flask
+    -->
+    <script>
+        const radioPort = document.querySelectorAll('input[name="port"]');
+            const port = "C"
+
+            radioPort.forEach(radioButton => {
+                radioButton.addEventListener('change', function () {
+                    port = this.value;
+                });
+            });
+
+            const radioSex = document.querySelectorAll('input[name="sex"]');
+            const sex = "1"
+
+            radioSex.forEach(radioButton => {
+                radioButton.addEventListener('change', function () {
+                    port = this.value;
+                });
+            });
+
+            const alone = document.getElementById("alone");
+            const prediction = document.getElementById("prediction")
+
+            function createURL() {
+                var pclass = document.getElementById("pclass").value;
+                var age = document.getElementById("age").value;
+                var sibsp = document.getElementById("sibsp").value;
+                var parch = document.getElementById("parch").value;
+                var fare = document.getElementById("fare").value;
+
+                var URL = "error"
+                if (pclass != "" && age != "" && sibsp != "" && parch != "" && fare != "") {
+                    URL = window.location+"/predict?pclass=" + pclass + "&sex=" + sex + "&age=" + age + "&sibsp=" + sibsp + "&parch=" + parch + "&fare=" + fare + "&alone=" + (alone.checked ? 1 : 0) + "&port=" + port;
+                }
+                else {
+                    alert("Please fill all fields")
+                }
+                return URL
+            }
+
+            async function getPrediction(URL) {
+                fetch(URL)
+                    .then((res) => res.json())
+                    .then(data => {
+                        prediction.innerText = data.prediction
+                    })
+                    .catch((err) => {
+                        console.log("error")
+                    })
+            }
+
+            function send() {
+                var URL = createURL()
+                if (URL != "error") {
+                    console.log(URL)
+                    getPrediction(URL)
+                }
+            }
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+    "linearRegression": {
+        "MSE": 0.1742,
+        "weight": 0.2288560236143826,
+        "deposit": 700
+    },
+    "randomForest": {
+        "MSE": 0.16718354497177726,
+        "weight": 0.43537901832905407,
+        "deposit": 1270
+    },
+    "XGBClassifier": {
+        "MSE": 0.21678321678321677,
+        "weight": 0.33576495805656326,
+        "deposit": 1270
+    }
+}
