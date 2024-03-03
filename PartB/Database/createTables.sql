@@ -9,8 +9,8 @@ CREATE TABLE products(
 
 CREATE TABLE users(
 	userid SERIAL PRIMARY KEY,
-	firstname VARCHAR(15),
-	lastname VARCHAR(15)
+	username VARCHAR(15),
+	password VARCHAR(15)
 );
 
 CREATE TABLE orders(
@@ -30,7 +30,7 @@ CREATE TABLE orderdetails(
 CREATE TABLE cart(
 	cartid SERIAL PRIMARY KEY,
 	userid INT,
-	total_price DECIMAL(10,2)
+	total_price DECIMAL(10,2) DEFAULT 0
 );
 
 CREATE TABLE cartdetails(
