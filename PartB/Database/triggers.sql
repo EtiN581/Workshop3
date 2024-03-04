@@ -42,18 +42,18 @@ BEGIN
             SELECT SUM(p.price * c.quantity) 
             FROM cartdetails c 
             JOIN products p ON c.productid = p.productid 
-            WHERE c.cartid = NEW.cartid
+            WHERE c.userid = NEW.userid
         )
-        WHERE cartid = NEW.cartid;
+        WHERE userid = NEW.userid;
     ELSIF TG_OP = 'DELETE' THEN
         UPDATE cart
         SET total_price = (
             SELECT SUM(p.price * c.quantity) 
             FROM cartdetails c 
             JOIN products p ON c.productid = p.productid 
-            WHERE c.cartid = OLD.cartid
+            WHERE c.userid = OLD.userid
         )
-        WHERE cartid = OLD.cartid;
+        WHERE userid = OLD.userid;
     END IF;
     RETURN NEW;
 END;

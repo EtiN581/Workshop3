@@ -3,7 +3,7 @@ CREATE TABLE products(
 	name VARCHAR(20),
 	description VARCHAR(200),
 	category VARCHAR(50),
-	stock_status VARCHAR(10),
+	stock_status VARCHAR(15),
 	price DECIMAL(10,2)
 );
 
@@ -28,23 +28,22 @@ CREATE TABLE orderdetails(
 );
 
 CREATE TABLE cart(
-	cartid SERIAL PRIMARY KEY,
-	userid INT,
+	userid INT PRIMARY KEY,
 	total_price DECIMAL(10,2) DEFAULT 0
 );
 
 CREATE TABLE cartdetails(
-	cartid INT,
+	userid INT,
 	productid INT,
 	quantity INT,
-	PRIMARY KEY (cartid, productid)
+	PRIMARY KEY (userid, productid)
 );
 
 ALTER TABLE orders ADD CONSTRAINT fk_userid FOREIGN KEY(userid) REFERENCES users(userid);
 ALTER TABLE orderdetails ADD CONSTRAINT fk_orderid FOREIGN KEY(orderid) REFERENCES orders(orderid);
 ALTER TABLE orderdetails ADD CONSTRAINT fk_productid FOREIGN KEY(productid) REFERENCES products(productid);
 ALTER TABLE cartdetails ADD CONSTRAINT fk_productid FOREIGN KEY(productid) REFERENCES products(productid);
-ALTER TABLE cartdetails ADD CONSTRAINT fk_cartid FOREIGN KEY(cartid) REFERENCES cart(cartid);
+ALTER TABLE cartdetails ADD CONSTRAINT fk_cartid FOREIGN KEY(userid) REFERENCES cart(userid);
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO db_user;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO db_user;

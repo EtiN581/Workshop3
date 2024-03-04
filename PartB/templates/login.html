@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        div {
+            color: red;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <h2>Login</h2>
+    <input type="text" placeholder="username" id="username"><br>
+    <input type="text" placeholder="password" id="password"><br>
+    <div id="below"></div>
+    <button onclick="login()">Login</button>
+    <button onclick="create()">Create Account</button>
+    <script>
+        const username = document.getElementById('username')
+        const password = document.getElementById('password')
+        const below = document.getElementById('below')
+
+        function login() {
+            if (check()) {
+                console.log(username.value)
+                console.log(password.value)
+                fetch('/users', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        username: username.value,
+                        password: password.value,
+                        action: "login"
+                    })
+                })
+                    .then(res=>res.json())
+                    .then(data=>{
+                        if (data.hasOwnProperty('error')) {
+                            below.style.visibility = "visible"
+                            below.style.color = "red"
+                            below.innerText = data['error']
+                        } else {
+                            localStorage.setItem('userid', data['userid'])
+                            window.location.href = "/shop"
+                        }
+                    })
+            }
+        }
+
+        function check() {
+            if (username.value == "" || password.value == "") {
+                below.style.visibility = "visible"
+                below.style.color = "red"
+                below.innerText = 'Please enter an username and a password'
+                return false
+            } else {
+                below.style.visibility = "hidden"
+                return true
+            }
+        }
+
+        function create() {
+            if (check()) {
+                fetch('/users', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        username: username.value,
+                        password: password.value,
+                        action: "create"
+                    })
+                })
+                    .then(res=>res.json())
+                    .then(data=>{
+                        below.style.visibility="visible"
+                        if (data.hasOwnProperty('error')) {
+                            below.style.color = "red"
+                            below.innerText = data['error']
+                        } else {
+                            below.style.color="black"
+                            below.innerText = data['success']
+                        }
+                        username.value=""
+                        password.value=""
+                    })
+            }
+        }
+    </script>
+</body>
+</html>

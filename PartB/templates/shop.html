@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shop</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 50%;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<!--
+    - get all products (even id)
+    - forms to send product
+    - delete product by id
+-->
+<dody>
+    <h2>Products</h2>
+    <table id="products">
+        <thead>
+            <tr>
+                <td>Name</td>
+                <td>Description</td>
+                <td>Category</td>
+                <td>Stock Status</td>
+                <td>Price</td>
+                <td>Quantity</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+    <br>
+    <h2>Cart</h2>
+    <table id="cart">
+        <thead>
+            <tr>
+                <td>Product ID</td>
+                <td>Quantity</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+    <p id="cartTotal">Total : 0</p><br>
+    <button onclick="addOrder()">Order</button>
+
+    <h2>Orders</h2>
+    <table id="orders">
+        <thead>
+            <tr>
+                <td>Products</td>
+                <td>Quantities</td>
+                <td>Total</td>
+                <td>Order Status</td>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <script>
+        const productsTable = document.getElementById('products').getElementsByTagName('tbody')[0]
+        const cartTable = document.getElementById('cart').getElementsByTagName('tbody')[0]
+        const orderTable = document.getElementById('orders').getElementsByTagName('tbody')[0]
+        let userid= localStorage.getItem('userid')
+        
+        document.addEventListener('DOMContentLoaded', (event)=>{
+            fetch('/products')
+                .then(res=> res.json())
+                .then(data =>{
+                    data.forEach(d=>{
+                        const row = productsTable.insertRow()
+                        row.setAttribute('tag', d['productid'])
+                        row.insertCell(0).innerText = d['name']
+                        row.insertCell(1).innerText = d['description']
+                        row.insertCell(2).innerText = d['category']
+                        row.insertCell(3).innerText = d['stock_status']
+                        row.insertCell(4).innerText = d['price']
+                        row.insertCell(5).innerHTML = '<input type="text" name="quantity" size="1">'
+                        row.insertCell(6).innerHTML = '<button onclick="addToCart(this)">Add To Cart</button>'
+                    })
+                })
+                .catch(error => {
+                    console.error('Error', error)
+                })
+        })
+
+        document.addEventListener('DOMContentLoaded', (event)=>{
+            fetch('/cart/'+userid)
+                .then(res=>res.json())
+                .then(data=>{
+                    getCart(data)
+                })
+                .catch(error=>{
+                    console.error('Error', error)
+                })
+        })
+
+        document.addEventListener('DOMContentLoaded', (event)=>{
+            fetch('/orders/'+userid)
+                .then(res=>res.json())
+                .then(data=>{
+                    getOrders(data)
+                })
+                .catch(error => {
+                    console.error('Error', error)
+                })
+        })
+
+        function getCart(data) {
+            clearTable(cartTable)
+            const cartTotal = document.getElementById('cartTotal')
+            if (!data.hasOwnProperty('error')) {
+                for (var i = 0; i < data['products'].length; i++) {
+                    const row = cartTable.insertRow()
+                    const targetRow = productsTable.querySelector(`tr[tag="${data['products'][i]}"]`)
+                    row.setAttribute('tag', data['products'][i])
+                    row.insertCell(0).innerText = targetRow.cells[0].innerText
+                    row.insertCell(1).innerText = data['quantities'][i]
+                    row.insertCell(2).innerHTML = '<button onclick="removeFromCart(this)">Remove</button>'
+                }
+                cartTotal.innerText = "Total : " + data['total_price']
+            }
+        }
+
+        function getOrders(data) {
+            clearTable(orderTable)
+            data.forEach(d=>{
+                const row = orderTable.insertRow()
+                row.insertCell(0).innerText = d['productnames'].join('\n')
+                row.insertCell(1).innerText = d['quantities'].join('\n')
+                row.insertCell(2).innerText = d['total_price']
+                row.insertCell(3).innerText = d['stock_status']
+            })
+        }
+
+        function clearTable(table) {
+            for (var i = table.rows.length - 1; i >= 0; i--) {
+                table.deleteRow(i)
+            }
+        }
+
+        function addToCart(button) {
+            const row = button.parentNode.parentNode
+            const quantity = row.querySelector('input')
+            if (quantity.value!="") {
+                let productid = parseInt(row.getAttribute('tag'))
+                fetch('/cart/'+userid, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        productid: productid,
+                        quantity: parseInt(quantity.value)
+                    })
+                })
+                    .then(res=>res.json())
+                    .then(data=>{
+                        getCart(data)
+                    })
+                    .catch(error => {
+                        console.error('Error', error)
+                    })
+            }
+            quantity.value=""
+        }
+
+        function removeFromCart(button) {
+            const row = button.parentNode.parentNode
+            var productid = parseInt(row.getAttribute('tag'))
+            var quantity = parseInt(row.cells[1])
+            fetch(`/cart/${userid}/item/${productid}`, {
+                method: 'DELETE'
+            })
+                .then(res=>res.json())
+                .then(data=>{
+                    if (!data.hasOwnProperty('code')) {
+                        getCart(data)
+                    } else {
+                        clearTable(cartTable)
+                        cartTotal.innerText = "Total : " + 0
+                    }
+                })
+        }
+        
+        function addOrder() {
+            fetch('/cart/'+userid)
+                .then(res=>res.json())
+                .then(cart=>{
+                    if (cart['products'].length == 0 || cart['quantities'].length == 0) {
+                        alert('The cart is empty')
+                    } else {
+                        fetch('/orders', {
+                            method: 'POST',
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                userid: userid,
+                                products: cart['products'],
+                                quantities: cart['quantities'],
+                                order_status: "to do"
+                            })
+                        })
+                            .then(res=>res.json())
+                            .then(data=>{
+                                const row = orderTable.insertRow()
+                                row.insertCell(0).innerText = data['productnames'].join('\n')
+                                row.insertCell(1).innerText = data['quantities'].join('\n')
+                                row.insertCell(2).innerText = data['total_price']
+                                row.insertCell(3).innerText = data['stock_status']
+                            })
+                            .catch(error => {
+                                console.error('Error', error)
+                            })
+                    }
+                })
+                .catch(error=>{
+                    console.error('Error', error)
+                })
+        }
+    </script>
+</dody>
+</html>
